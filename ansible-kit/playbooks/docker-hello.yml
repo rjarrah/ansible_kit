@@ -1,0 +1,19 @@
+---
+# Start a long-running container named hello-world, or check its status.
+#
+# Start (default — also prints status at the end):
+#   ansible-playbook playbooks/docker-hello.yml
+#   make start
+#
+# Status only:
+#   ansible-playbook playbooks/docker-hello.yml --tags status
+#   make status
+#
+# First-time Docker install (needs sudo):
+#   ansible-playbook playbooks/docker-hello.yml --ask-become-pass
+- name: Docker hello-world
+  hosts: local
+  gather_facts: true
+  become: false
+  roles:
+    - role: docker_hello

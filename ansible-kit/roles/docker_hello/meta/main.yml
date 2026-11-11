@@ -1,0 +1,7 @@
+---
+galaxy_info:
+  role_name: docker_hello
+  description: Ensure Docker is running and start the hello-world container
+  license: MIT
+  min_ansible_version: "2.14"
+dependencies: []

@@ -1,0 +1,90 @@
+---
+# Prefer the Docker socket as the current user (docker group). Only escalate
+# for package/service/group setup when the socket is not usable yet.
+- name: Check Docker access without privilege escalation
+  ansible.builtin.command: docker info
+  register: docker_hello_info
+  changed_when: false
+  failed_when: false
+  tags: [start]
+
+- name: Install Docker engine (Debian/Ubuntu)
+  ansible.builtin.apt:
+    name:
+      - docker.io
+      - python3-docker
+    state: present
+    update_cache: true
+  become: true
+  when:
+    - ansible_os_family == "Debian"
+    - docker_hello_info.rc != 0
+  tags: [start]
+
+- name: Install Docker engine (RedHat/Fedora)
+  ansible.builtin.dnf:
+    name:
+      - docker
+      - python3-docker
+    state: present
+  become: true
+  when:
+    - ansible_os_family == "RedHat"
+    - docker_hello_info.rc != 0
+  tags: [start]
+
+- name: Start and enable Docker
+  ansible.builtin.service:
+    name: docker
+    state: started
+    enabled: true
+  become: true
+  when: docker_hello_info.rc != 0
+  tags: [start]
+
+- name: Ensure managing user can access Docker socket
+  ansible.builtin.user:
+    name: "{{ ansible_user_id }}"
+    groups: docker
+    append: true
+  become: true
+  register: docker_hello_group
+  when: docker_hello_info.rc != 0
+  tags: [start]
+
+- name: Reset SSH connection so docker group applies
+  ansible.builtin.meta: reset_connection
+  when:
+    - ansible_connection != "local"
+    - docker_hello_group is changed
+  tags: [start]
+
+- name: Ensure {{ docker_hello_container_name }} container is running
+  community.docker.docker_container:
+    name: "{{ docker_hello_container_name }}"
+    image: "{{ docker_hello_image }}"
+    state: started
+    restart_policy: unless-stopped
+    published_ports: "{{ docker_hello_ports }}"
+    comparisons:
+      image: strict
+  become: "{{ docker_hello_become | bool }}"
+  tags: [start]
+
+- name: Get {{ docker_hello_container_name }} container status
+  community.docker.docker_container_info:
+    name: "{{ docker_hello_container_name }}"
+  become: "{{ docker_hello_become | bool }}"
+  register: docker_hello_status
+  tags: [status]
+
+- name: Show {{ docker_hello_container_name }} status
+  ansible.builtin.debug:
+    msg:
+      name: "{{ docker_hello_container_name }}"
+      exists: "{{ docker_hello_status.exists }}"
+      status: "{{ docker_hello_status.container.State.Status | default('absent') }}"
+      running: "{{ docker_hello_status.container.State.Running | default(false) }}"
+      image: "{{ docker_hello_status.container.Config.Image | default('n/a') }}"
+      started_at: "{{ docker_hello_status.container.State.StartedAt | default('n/a') }}"
+  tags: [status]

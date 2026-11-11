@@ -1,0 +1,8 @@
+---
+# Shared defaults for every host
+timezone: UTC
+common_packages:
+  - curl
+  - git
+  - htop
+  - vim

@@ -1,0 +1,9 @@
+---
+docker_hello_container_name: hello-world
+# hello-world image exits immediately; nginx stays running
+docker_hello_image: nginx:alpine
+docker_hello_ports:
+  - "8080:80"
+# Install/service tasks always use become. Container API tasks use this flag.
+# false = talk to the Docker socket as the current user (docker group).
+docker_hello_become: false

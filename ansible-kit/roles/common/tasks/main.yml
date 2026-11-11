@@ -1,0 +1,18 @@
+---
+- name: Install common packages
+  ansible.builtin.package:
+    name: "{{ common_packages }}"
+    state: present
+  become: true
+  tags: [packages]
+
+- name: Deploy MOTD
+  ansible.builtin.template:
+    src: motd.j2
+    dest: /etc/motd
+    owner: root
+    group: root
+    mode: "0644"
+  become: true
+  when: common_motd_enabled | bool
+  tags: [motd]

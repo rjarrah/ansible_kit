@@ -1,0 +1,7 @@
+---
+common_packages:
+  - curl
+  - git
+
+common_motd_enabled: true
+common_motd_message: "Managed by Ansible"

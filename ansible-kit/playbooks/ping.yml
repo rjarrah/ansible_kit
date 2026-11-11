@@ -1,0 +1,8 @@
+---
+# Smoke-test connectivity / local connection
+- name: Ping inventory hosts
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Ping
+      ansible.builtin.ping:
